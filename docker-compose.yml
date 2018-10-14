@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  web:
+    build: web
+    container_name: myauth-web
+    depends_on:
+      - db
+    ports:
+      - "80:80"
+    environment:
+      - MYSQL_DATABASE=mydb
+      - MYSQL_USER=www
+      - MYSQL_PASSWORD=nXa7bu5H
+    env_file:
+      - mysql.env
+  db:
+    image: mysql:5.7.22
+    container_name: myauth-db
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=true
+      - MYSQL_DATABASE=mydb
+      - MYSQL_USER=www
+      - MYSQL_PASSWORD=nXa7bu5H
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data:
