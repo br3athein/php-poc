@@ -25,7 +25,6 @@ if ($stmt = $conn->prepare($query)) {
                 $hashed_pwd
             );
             if ($stmt->execute() === TRUE) {
-                echo 'user ' . $requested_login . ' was successfully created.';
                 header('Location: index.htm');
                 die();
             } else {
