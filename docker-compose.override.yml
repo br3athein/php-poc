@@ -6,3 +6,8 @@ services:
       - ./web/php:/var/www/html
     stdin_open: true
     tty: true
+  db:
+    ports:
+      - "6612:3306"
+    volumes:
+      - ./db/initdb-entrypoint.d:/docker-entrypoint-initdb.d
