@@ -16,8 +16,6 @@ if ($stmt = $conn->prepare($query)) {
     $stmt->bind_result($user_login, $user_pwd_hash);
     $stmt->fetch();
 
-    // echo var_dump($hashed_search_pwd) . '<br>';
-    // echo var_dump($user_pwd_hash) . '<br>';
     if ($user_login && password_verify($search_pwd, $user_pwd_hash)) {
         session_start();
         $_SESSION['login'] = $search_login;
