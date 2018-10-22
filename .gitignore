@@ -1,0 +1,8 @@
+# Emacs' lockfiles
+\#.\#
+
+# JS linter leftovers
+.tern-port
+
+# local project configuration
+.ac-php-conf.json
