@@ -1,13 +1,14 @@
 version: '3'
 
 services:
-  web:
-    build: web
-    container_name: myauth-web
+  app:
+    build: app
+    container_name: php-poc-app
     depends_on:
       - db
     ports:
       - "80:80"
+      - "443:443"
     environment:
       - MYSQL_DATABASE=mydb
       - MYSQL_USER=www
@@ -16,7 +17,7 @@ services:
       - mysql.env
   db:
     build: db
-    container_name: myauth-db
+    container_name: php-poc-db
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=true
       - MYSQL_DATABASE=mydb
