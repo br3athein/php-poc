@@ -4,7 +4,9 @@ services:
   app:
     volumes:
       - ./app/public:/app/public
-      - ./app/mvc:/app/mvc
+      - ./app/mvc/models:/app/mvc/models
+      - ./app/mvc/views:/app/mvc/views
+      - ./app/mvc/controllers:/app/mvc/controllers
     stdin_open: true
     tty: true
   db:

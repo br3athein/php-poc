@@ -12,20 +12,27 @@
  * @release  GIT: 84ba1797862a95b074519f3c56bdbeff1b0de60b
  * @link     https://github.com/br3athein/php-poc
  */
-class DBConn
+
+/**
+ * Database connector.
+ *
+ * @return mysqli connection
+ */
+function establishDatabaseConn()
 {
-    /**
-     * Database connector.
-     *
-     * @return mysqli connection
-     */
-    public static function establish()
-    {
-        return new mysqli(
-            'db',
-            getenv('MYSQL_USER'),
-            getenv('MYSQL_PASSWORD'),
-            getenv('MYSQL_DATABASE')
-        );
+    $conn = new mysqli(
+        'db',
+        getenv('MYSQL_USER'),
+        getenv('MYSQL_PASSWORD'),
+        getenv('MYSQL_DATABASE')
+    );
+    if ($conn->connect_error) {
+        // invalid due to lint check
+        // die(
+        // 'Failed to connect: (' . $conn->connect_errno . ') '
+        // . $conn->connect_error
+        // );
+        return null;
     }
+    return $conn;
 }
