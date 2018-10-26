@@ -7,6 +7,8 @@ namespace orm;
 
 require '../dbconn.php';
 
+class OrmException extends Exception {};
+
 class Model {
     protected static $modelTableName;
 
@@ -28,7 +30,12 @@ class Model {
             . ' VALUES (' . join(', ', $fieldvalues) . ')'
         );
         $conn = establishDatabaseConn();
-        $conn->query($query);
+        if ($res = $conn->query($query)) {
+            echo 'Success, see below<br>';
+            var_dump($res);
+            return $res  // to improve
+        }
+        return false;
     }
 
     /**

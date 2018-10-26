@@ -27,11 +27,6 @@ function establishDatabaseConn()
         getenv('MYSQL_DATABASE')
     );
     if ($conn->connect_error) {
-        // invalid due to lint check
-        // die(
-        // 'Failed to connect: (' . $conn->connect_errno . ') '
-        // . $conn->connect_error
-        // );
         return null;
     }
     return $conn;

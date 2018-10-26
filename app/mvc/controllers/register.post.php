@@ -13,7 +13,13 @@ if (empty($requestedLogin) || empty($rawPwd)) {
 $hashed_pwd = password_hash($rawPwd, PASSWORD_DEFAULT);
 require '/app/mvc/models/users.php';
 
-$alreadyExists = (Users.searchByLogin($requestedLogin));
-if ($alreadyExists) {
+$registeredUser = (Users::search(login, $requestedLogin));
+if ($registeredUser) {
     die('User w/ login ' . $requestedLogin . ' exists already.');
 }
+$new_user = Users::create(
+    array(
+        login => $requestedLogin,
+        pwd_hash => $hashed_pwd,
+    )
+);

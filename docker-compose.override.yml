@@ -4,13 +4,11 @@ services:
   app:
     volumes:
       - ./app/public:/app/public
-      - ./app/mvc/models:/app/mvc/models
-      - ./app/mvc/views:/app/mvc/views
-      - ./app/mvc/controllers:/app/mvc/controllers
+      - ./app/mvc:/app/mvc
     stdin_open: true
     tty: true
   db:
     ports:
-      - "6612:3306"
+      - "3306:3306"
     volumes:
       - ./db/initdb-entrypoint.d:/docker-entrypoint-initdb.d
