@@ -11,6 +11,8 @@ class Users extends Model {
     public $PwdHash;
     public $IsBanned;
 
+    private $_classTableName = 'users';
+
     /**
      * Try to authenticate using given credentials.
      */
