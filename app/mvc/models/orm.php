@@ -3,11 +3,12 @@
  * A lightweight ORM tasked w/ getting/setting values on model records.
  */
 
+namespace orm;
+
 require '../dbconn.php';
 
 class Model {
-    public $Id;
-    private $_modelTableName;
+    protected static $modelTableName;
 
     public function create($valuesMapping) {
         $fieldnames = [];
@@ -20,9 +21,9 @@ class Model {
             array_push($fieldvalues, $fieldValue);
             $typestring .= gettype($fieldValue)[0];
         }
-        // TODO: VALUES should contain `?` symbols i/o actual field vals
+        // TODO: VALUES should contain `?` symbols i/o actual field _vals
         $query = mysql_escape_string(
-            'INSERT INTO ' . $_modelTableName
+            'INSERT INTO ' . static::$modelTableName
             . '(' . join(', ', $fieldnames) . ') '
             . ' VALUES (' . join(', ', $fieldvalues) . ')'
         );
@@ -30,14 +31,56 @@ class Model {
         $conn->query($query);
     }
 
+    /**
+     * Would be nice to search for smth which is not a login.
+     *
+     * @param=login value to search for
+     * @return      found login or NULL if there are no users w/ such login
+     */
+    public static function search($field, $value, $limit=1) {
+        $query = (
+            'SELECT * FROM ' . 'users'
+            . ' WHERE ' . $field . ' = ?'
+        );
+        if (isset($limit)) {
+            $query .= ' LIMIT ' . $limit;
+        }
+        $rset = array();
+        $conn = establishDatabaseConn();
+        if ($stmt = $conn->prepare($query)) {
+            $typestr = gettype($value)[0];
+            $stmt->bind_param($typestr, $value);
+            $stmt->execute();
+            $res = $stmt->get_result();
+
+            while ($row = $res->fetch_assoc()) {
+                $rset[] = new Record($row, static::$modelTableName);
+            }
+        }
+        return $rset;
+    }
+}
+
+class Record extends Model {
+    public $id;
+    private $_vals = array();
+    private $_modelTableName;
+
+    function __construct($vals, $modelTableName) {
+        $this->id = $vals['id'];
+        unset($vals['id']);
+        $this->_vals = $vals;
+        $this->_modelTableName = $modelTableName;
+    }
+
     public function __set($name, $value) {
-        if (empty($this->Id)) {
-            throw Exception('Attempt to write on a record w/o ID.');
+        if (empty($this->id) && $name !== 'id') {
+            throw \Exception('Attempt to write on a record w/o ID.');
         }
         $query = (
-            'UPDATE ' . $this->_modelTableName
+            'UPDATE ' . $this->modelTableName
             . ' SET ' . $name . ' = ' . $value
-            . ' WHERE id = ' . $this->Id
+            . ' WHERE id = ' . $this->id
         );
         $conn = establishDatabaseConn();
         if ($stmt = $conn->prepare($query)) {
@@ -46,17 +89,7 @@ class Model {
             $stmt->execute();
         }
     }
-
-    public static function search($field, $value, $limit=1) {
-        $query_raw = (
-            'SELECT * FROM ' . $this->_modelTableName
-            . ' WHERE ' . $field . ' = ' . $value
-        );
-        if (isset($limit)) {
-            $query_raw .= ' LIMIT ' . $limit;
-        }
-        $query = mysql_escape_string($query_raw);
-        $conn = establishDatabaseConn();
-        $conn->query($query);
+    public function readField($name) {
+        return $this->_vals[$name];
     }
 }
