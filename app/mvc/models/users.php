@@ -16,16 +16,13 @@ class Users extends \orm\Model {
      * Try to authenticate using given credentials.
      */
     public function authenticate($pwd) {
-        if (password_verify($pwd, $this->readField('password_hash'))) {
+        if (password_verify($pwd, self::readField($this, 'password_hash'))) {
             session_start();
             $_SESSION['login'] = $username;
             $_SESSION['pwd_hash'] = $this->readField('password_hash');
             return true;
         }
-        throw \orm\AuthException(
-            'login failed for ' . $username
-            . 'Try another pwd, lol.'
-        );
+        throw new \orm\AuthException();
     }
 
     public function searchByLogin($login) {
@@ -43,7 +40,7 @@ class Users extends \orm\Model {
 
     public function register($login, $pwd) {
         if (Users.search('login', $login)) {
-            throw Exception('FATAL: user "' . $login . '" exists already.');
+            throw new Exception('FATAL: user "' . $login . '" exists already.');
         }
 
         $query = 'INSERT INTO users (login, password_hash) VALUES (?, ?)';

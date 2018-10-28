@@ -1,6 +1,6 @@
 <?php
 /**
- * A lightweight ORM tasked w/ getting/setting values on model records.
+ * A lightweight ORM tasked w/ getting/setting values on various model records.
  */
 
 namespace orm;
@@ -9,6 +9,7 @@ require '../dbconn.php';
 
 class OrmException extends \Exception {};
 
+class RecordNotFoundException extends OrmException {};
 class AuthException extends OrmException {};
 
 final class ModelRegistry {
@@ -20,7 +21,25 @@ final class ModelRegistry {
 }
 
 abstract class Model {
-    protected static $modelTableName;
+    protected static $conn, $modelTableName;
+
+    public function useConnection(mysqli $conn) {
+        if($conn === null) {
+            $conn = establishDatabaseConn();
+        }
+        self::$conn = $conn;
+    }
+    public function getConnection() {
+        return self::$conn;
+    }
+
+    // do we need this?
+    private function _getModel() {
+        // look up for the particular class
+        foreach(get_declared_classes() as $class) {
+            static::$modelTableName;
+        }
+    }
 
     public function create($valuesMapping) {
         $fieldnames = [];
@@ -39,11 +58,8 @@ abstract class Model {
             . '(' . join(', ', $fieldnames) . ') '
             . ' VALUES (' . join(', ', $fieldvalues) . ')'
         );
-        $conn = establishDatabaseConn();
-        if ($res = $conn->query($query)) {
-            echo 'Success, see below<br>';
-            var_dump($res);
-            return $res;  // to improve
+        if ($res = self::getConnection()->query($query)) {
+            return $res;
         }
         return false;
     }
@@ -70,11 +86,17 @@ abstract class Model {
             $stmt->execute();
             $res = $stmt->get_result();
 
+            var_dump($res);
             while ($row = $res->fetch_assoc()) {
-                $rset[] = new Record(static::$modelTableName, $row);
+                // refer to caller model directly
+                $model = get_called_class();
+                $rset[] = new $model($row);
             }
         }
         return $rset;
+    }
+    public static function readField(Record $record, $name) {
+        return $record->_vals[$name];
     }
 }
 
@@ -83,16 +105,15 @@ class Record extends Model {
     private $_vals = array();
     private $_modelTableName;
 
-    function __construct($vals, $modelTableName) {
+    function __construct($vals) {
         $this->id = $vals['id'];
         unset($vals['id']);
         $this->_vals = $vals;
-        $this->_modelTableName = $modelTableName;
     }
 
     public function __set($name, $value) {
         if (empty($this->id) && $name !== 'id') {
-            throw \Exception('Attempt to write on a record w/o ID.');
+            throw new \Exception('Attempt to write on a record w/o ID.');
         }
         $query = (
             'UPDATE ' . $this->modelTableName
@@ -105,8 +126,5 @@ class Record extends Model {
             $stmt->bind_param($valueType, $value);
             $stmt->execute();
         }
-    }
-    public function readField($name) {
-        return $this->_vals[$name];
     }
 }
