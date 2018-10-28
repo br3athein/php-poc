@@ -13,7 +13,73 @@ class RecordNotFoundException extends OrmException {};
 class AuthException extends OrmException {};
 
 abstract class Model {
-    protected static $conn, $dbTable, $pk = 'id';
+    protected static
+        $conn,
+        $dbTable,
+        $pk = 'id';
+    private
+        $_loadData,
+        $_loadMethod,
+        $_isNew = false,
+        $_modifiedFields = array();
+
+    const
+        LOAD_BY_PK = 1,
+        LOAD_BY_ARRAY = 2,
+        LOAD_NEW = 3,
+        LOAD_EMPTY = 4;
+
+    function __construct($data = null, $method = self::LOAD_EMPTY) {
+        $this->_loadData = $data;
+
+        switch($method) {
+            case self::LOAD_BY_PK:
+                $this->loadByPk();
+                break;
+            case self::LOAD_BY_ARRAY:
+                $this->loadByArray();
+                break;
+            case self::LOAD_NEW:
+                $this->loadByArray();
+                $this->insert();
+                break;
+            case self::LOAD_EMPTY:
+                $this->hydrateEmpty();
+                break;
+        }
+
+        $this->initialise();
+    }
+
+    // DB info
+    public static function getTableName() {
+        $callerClass = get_called_class();
+        if (isset($callerClass::$dbTable)) {
+            return $callerClass::$dbTable;
+        }
+        return strtolower($callerClass);
+    }
+    private function getColumnNames() {
+        $conn = self::getConnection();
+        $result = $conn->query(sprintf('DESCRIBE %s', self::getTableName()));
+        if ($result === false) {
+            throw new OrmException(
+                sprintf('Unable to fetch column names. %s', $conn->error)
+            );
+        }
+        $ret = array();
+        while ($row = $result->fetch_assoc()) {
+            $ret[] = $row['Field'];
+        }
+        $result->close();
+        return $ret;
+    }
+
+    private function hydrateEmpty() {
+        foreach ($this->getColumnNames() as $field) {
+            $this->{$field} = null;
+        }
+    }
 
     public function useConnection(mysqli $conn) {
         if($conn === null) {
@@ -42,7 +108,7 @@ abstract class Model {
     const FETCH_MULTIPLE = 2;
     const FETCH_NONE = 3;
 
-    private function _execute($sql, $return = Model::FETCH_MANY) {
+    private function execute($sql, $return = Model::FETCH_MANY) {
         $result = self::getConnection()->query($sql);
         if (!$result) {
             throw new OrmException(
@@ -88,6 +154,29 @@ abstract class Model {
         );
     }
 
+
+    public function id() {
+        return $this->{self::getPk()};
+    }
+    public function save() {
+        if ($this->isNew) {
+            $this->insert();
+        } else {
+            $this->update();
+        }
+    }
+    public function update() {
+        if ($this->_isNew) {
+            throw new OrmException('Unable to UPDATE, record is new.')
+        }
+        $pk = self::getPk();
+        $id = $this->id();
+
+        $
+    }
+
+
+
     /**
      * Look for records w/ `field` set to `value`.
      *
@@ -128,12 +217,6 @@ class Record extends Model {
     public $id;
     private $_vals = array();
     protected static $dbTable;
-
-    function __construct($vals) {
-        $this->id = $vals['id'];
-        unset($vals['id']);
-        $this->_vals = $vals;
-    }
 
     public function __set($name, $value) {
         if (empty($this->id) && $name !== 'id') {
