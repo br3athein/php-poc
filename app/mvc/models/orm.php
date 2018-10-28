@@ -7,9 +7,19 @@ namespace orm;
 
 require '../dbconn.php';
 
-class OrmException extends Exception {};
+class OrmException extends \Exception {};
 
-class Model {
+class AuthException extends OrmException {};
+
+final class ModelRegistry {
+    private function __construct() {}
+    static $vals = array();
+    public static function add($modelName, $modelTableName) {
+
+    }
+}
+
+abstract class Model {
     protected static $modelTableName;
 
     public function create($valuesMapping) {
@@ -33,7 +43,7 @@ class Model {
         if ($res = $conn->query($query)) {
             echo 'Success, see below<br>';
             var_dump($res);
-            return $res  // to improve
+            return $res;  // to improve
         }
         return false;
     }
@@ -61,7 +71,7 @@ class Model {
             $res = $stmt->get_result();
 
             while ($row = $res->fetch_assoc()) {
-                $rset[] = new Record($row, static::$modelTableName);
+                $rset[] = new Record(static::$modelTableName, $row);
             }
         }
         return $rset;

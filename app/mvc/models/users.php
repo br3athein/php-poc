@@ -6,8 +6,6 @@
  */
 require '/app/mvc/models/orm.php';
 
-class AuthException extends OrmException {};
-
 class Users extends \orm\Model {
 
     public $IsBanned;
@@ -18,16 +16,13 @@ class Users extends \orm\Model {
      * Try to authenticate using given credentials.
      */
     public function authenticate($pwd) {
-        if (!$this) {
-            throw AuthException('Username not found, noone to authenticate.');
-        }
         if (password_verify($pwd, $this->readField('password_hash'))) {
             session_start();
             $_SESSION['login'] = $username;
             $_SESSION['pwd_hash'] = $this->readField('password_hash');
             return true;
         }
-        throw AuthException(
+        throw \orm\AuthException(
             'login failed for ' . $username
             . 'Try another pwd, lol.'
         );

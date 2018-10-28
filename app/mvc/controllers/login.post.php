@@ -1,11 +1,11 @@
 <?php
 
-require '../models/users.php';
+require '/app/mvc/models/users.php';
 
 $givenLogin = $_POST['login'];
 $givenPassword = $_POST['pwd'];
 
-if (!$requestedUser = Users.search(login, $givenLogin)) {
+if (!$requestedUser = Users::search('login', $givenLogin)[0]) {
     throw AuthException('Username not found, noone to authenticate.');
 }
 
