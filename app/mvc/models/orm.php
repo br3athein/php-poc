@@ -12,16 +12,8 @@ class OrmException extends \Exception {};
 class RecordNotFoundException extends OrmException {};
 class AuthException extends OrmException {};
 
-final class ModelRegistry {
-    private function __construct() {}
-    static $vals = array();
-    public static function add($modelName, $modelTableName) {
-
-    }
-}
-
 abstract class Model {
-    protected static $conn, $modelTableName;
+    protected static $conn, $dbTable, $pk = 'id';
 
     public function useConnection(mysqli $conn) {
         if($conn === null) {
@@ -32,43 +24,75 @@ abstract class Model {
     public function getConnection() {
         return self::$conn;
     }
+    public function getPk() {
+        return self::$pk;
+    }
 
-    // do we need this?
-    private function _getModel() {
-        // look up for the particular class
-        foreach(get_declared_classes() as $class) {
-            static::$modelTableName;
+    private function parseValueType($val) {
+        if (is_int($val)) {
+            return 'i';
         }
+        if (is_double($val)) {
+            return 'd';
+        }
+        return 's';
+    }
+
+    const FETCH_ONE = 1;
+    const FETCH_MULTIPLE = 2;
+    const FETCH_NONE = 3;
+
+    private function _execute($sql, $return = Model::FETCH_MANY) {
+        $result = self::getConnection()->query($sql);
+        if (!$result) {
+            throw new OrmException(
+                sprintf('Unable to execute SQL statement. %s'),
+                self::getConnection()->error
+            );
+        }
+        if ($return === Model::FETCH_NONE) {
+            return;
+        }
+        $ret = array();
+        while ($row = $result->fetch_assoc()) {
+            $ret[] = $row;
+        }
+        $result->close();
+        if ($return === Model::FETCH_ONE) {
+            $ret = isset($ret[0])? $ret[0] : null;
+        }
+        return $ret;
     }
 
     public function create($valuesMapping) {
-        $fieldnames = [];
-        $fieldvalues = [];
-        $typestring = '';
+        $fieldNames = $fieldMarkers = $types = $values = array();
 
-        // not the best usage for associative arrays, probably
         foreach ($valuesMapping as $fieldName => $fieldValue) {
-            array_push($fieldnames, $fieldName);
-            array_push($fieldvalues, $fieldValue);
-            $typestring .= gettype($fieldValue)[0];
+            $fieldNames[] = $fieldName;
+            $fieldMarkers[] = '?';
+            $types[] = $this->parseValueType($fieldValue);
+            $values[] = &$valuesMapping[$fieldName];
         }
-        // TODO: VALUES should contain `?` symbols i/o actual field _vals
-        $query = mysql_escape_string(
-            'INSERT INTO ' . static::$modelTableName
-            . '(' . join(', ', $fieldnames) . ') '
-            . ' VALUES (' . join(', ', $fieldvalues) . ')'
+
+        $query = sprintf(
+            'INSERT INTO %s (%s) VALUES (%s)',
+            static::dbTable, join(', ', $fieldNames), join(', ', $fieldMarkers)
         );
-        if ($res = self::getConnection()->query($query)) {
-            return $res;
+        $stmt = self.getConnection()->prepare($query);
+        if (!$stmt) {
+            throw new \Exception(self::getConnection()->error."\n\n".$query);
         }
-        return false;
+        call_user_func_array(
+            array($stmt, 'bind_param'),
+            array_merge(array(implode($types)), $values)
+        );
     }
 
     /**
-     * Would be nice to search for smth which is not a login.
+     * Look for records w/ `field` set to `value`.
      *
-     * @param=login value to search for
-     * @return      found login or NULL if there are no users w/ such login
+     * @param  field     value to search for
+     * @return Recordset login or NULL if there are no users w/ such login
      */
     public static function search($field, $value, $limit=1) {
         $query = (
@@ -103,7 +127,7 @@ abstract class Model {
 class Record extends Model {
     public $id;
     private $_vals = array();
-    private $_modelTableName;
+    protected static $dbTable;
 
     function __construct($vals) {
         $this->id = $vals['id'];
@@ -116,7 +140,7 @@ class Record extends Model {
             throw new \Exception('Attempt to write on a record w/o ID.');
         }
         $query = (
-            'UPDATE ' . $this->modelTableName
+            'UPDATE ' . $this->dbTable
             . ' SET ' . $name . ' = ' . $value
             . ' WHERE id = ' . $this->id
         );

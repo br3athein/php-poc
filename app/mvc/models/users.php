@@ -6,11 +6,11 @@
  */
 require '/app/mvc/models/orm.php';
 
-class Users extends \orm\Model {
+class Users extends \orm\Record {
 
     public $IsBanned;
 
-    protected static $modelTableName = 'users';
+    protected static $dbTable = 'users';
 
     /**
      * Try to authenticate using given credentials.
