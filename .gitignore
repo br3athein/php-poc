@@ -6,3 +6,9 @@
 
 # local project configuration
 .ac-php-conf.json
+
+# 3p-packages
+vendor/
+
+# TBD: transfer this bullshit somewhere
+app/public/templates_c
