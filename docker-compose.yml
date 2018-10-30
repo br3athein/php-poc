@@ -13,8 +13,6 @@ services:
       - MYSQL_DATABASE=mydb
       - MYSQL_USER=www
       - MYSQL_PASSWORD=nXa7bu5H
-    env_file:
-      - mysql.env
   db:
     build: db
     container_name: php-poc-db
