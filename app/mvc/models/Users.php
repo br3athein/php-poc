@@ -15,7 +15,6 @@ class Users extends \app\lib\Model {
      */
     public function authenticate($pwd) {
         if (password_verify($pwd, $this->password_hash)) {
-            session_start();
             $_SESSION['login'] = $this->login;
             $_SESSION['pwd_hash'] = $this->password_hash;
             return true;
