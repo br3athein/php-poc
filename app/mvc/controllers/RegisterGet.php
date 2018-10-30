@@ -2,7 +2,7 @@
 
 namespace app\controllers;
 
-class RegisterGet
+class RegisterGet extends \AbstractController
 {
     protected $allowUnauthorized = true;
 

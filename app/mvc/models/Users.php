@@ -7,7 +7,7 @@
 
 namespace app\models;
 
-class Users extends \app\lib\Model {
+class Users {
 
     private $conn = null;
 
@@ -60,11 +60,17 @@ class Users extends \app\lib\Model {
 
     public function register($login, $pwd)
     {
-        if ($this->getByLogin($login)) {
-            throw new \orm\OrmException(
-                'FATAL: user "' . $login . '" exists already.'
-            );
-        }
+
+        // no need to check for existance, DBconn would crash on attempt to
+        // create user w/ existing login
+
+        // XXX: dead code
+        // if ($this->checkLoginExists($login)) {
+        //     throw new \orm\OrmException(
+        //         'FATAL: user "' . $login . '" exists already.'
+        //     );
+        // }
+        // end XXX
 
         $sql = "INSERT INTO `users` (%s) VALUES (%s)";
         $values = [
@@ -73,18 +79,21 @@ class Users extends \app\lib\Model {
         ];
 
         // compile statement - to be extracted, this is highly reusable
-        $fieldNames = $fieldValues = $fieldMarkers = $types = [];
-        foreach ($values as $fieldName => $fieldValue) {
+        $fieldNames = $fieldVals = $fieldMarkers = $types = [];
+        foreach ($values as $fieldName => $fieldVal) {
             $fieldNames[] = $fieldName;
             $fieldMarkers[] = '?';
-            $fieldValues[] = $fieldValue;
+            $fieldVals[] = $fieldVal;
             // 'd' for doubles, 'i' for ints, 's' for the rest
-            $types[] = is_int($value) ? 'i' : is_double($value) ? 'd' : 's';
+            $types[] = is_int($fieldVal) ? 'i' : is_double($fieldVal) ? 'd' : 's';
         }
         $sql = sprintf(
             $sql, implode(', ', $fieldNames), implode(', ', $fieldMarkers)
         );
-        call_user_func_array([$stmt, 'bind_param'], [implode($types), $fieldValues]);
+        $stmt = $this->conn->prepare($sql);
+        call_user_func_array(
+            [$stmt, 'bind_param'], array_merge([implode($types)], $fieldVals)
+        );
         // end compile statement
 
         $stmt->execute();

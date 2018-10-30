@@ -1,28 +1,15 @@
 <?php
 /**
- * Main app entrypoint
- *
- * PHP version 7.2.2
- *
- * @category Generic
- * @package  MyAuth
- * @author   br3athein <br3athein@gmail.com>
- * @license  https://gnu.org/licenses/agpl AGPL-3
- * @version  GIT: 84ba1797862a95b074519f3c56bdbeff1b0de60b
- * @link     https://github.com/br3athein/php-poc
+ * Simply a routing wrapper.
  */
 
-echo 'GET:<br>';
-var_dump($_GET);
-echo '<br>';
-echo 'POST:<br>';
-var_dump($_POST);
-echo '<hr>';
+include __DIR__.'/../mvc/lib/Init.php';
 
-if ($action = (isset($_GET['action']) ? $_GET['action'] : null)) {
-    include '/app/mvc/controllers/' . $action . '.get.php';
-} elseif ($action = (isset($_POST['action']) ? $_POST['action'] : null)) {
-    include '/app/mvc/controllers/' . $action . '.post.php';
-} else {
-    include '/app/mvc/controllers/landing.php';
+if (isset($_POST['action']) && $action = ucfirst($_POST['action'])) {
+    $className = sprintf("\app\controllers\%sPost", $action);
+    return $className::dispatch();
+} elseif (isset($_GET['action']) && $action = ucfirst($_GET['action'])) {
+    $className = sprintf("\app\controllers\%sGet", $action);
+    return $className::dispatch();
 }
+return new \app\controllers\Main();
