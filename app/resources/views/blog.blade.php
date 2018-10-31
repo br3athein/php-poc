@@ -9,24 +9,43 @@
                     <div class="card-header">Local blog</div>
 
                     <div class="card-body">
+                        <!-- TODO: make it pretty, looks quite disgusting ATM -->
+
                         <p>What's on your mind?</p>
-                        <form method="put" action="blog">
-                            <input type="hidden" name="action" value="blog"/>
+                        <form method="post" action="blog">
+                            @method('PUT')
+                            @csrf
                             <input type="text" name="body"/>
                             <br>
-                            <input type="submit" value="Post"/>
+                            <input type="submit" value="Post!"/>
                         </form>
                     </div>
                 </div>
             </div>
+
+            <hr>
+            <div class="card">
+                <div class="card-header">
+                    Real posts
+                </div>
+
+                <div class="card-body">
+                    <pre>{{ $bpdata }}</pre>
+                </div>
+            </div>
+
+            @if (empty($posts))
+                No blog posts are here yet.
+            @endif
             @foreach ($posts as $post)
+                <!-- TODO: use ActiveRecord -->
                 <div class="card">
                     <div class="card-header">
-                        {{ $post->author }} posted at {{ $post->timestamp }}
+                        {{ $post['author'] }} posted at {{ $post['timestamp'] }}
                     </div>
 
-                    <div>
-                        {{ $post->body }}
+                    <div class="card-body">
+                        {{ $post['body'] }}
                     </div>
                 </div>
             @endforeach

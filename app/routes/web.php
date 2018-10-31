@@ -20,4 +20,8 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 Route::middleware('auth')
     ->get('/blog', 'BlogController@index')
-    ->name('blog');
+    ->name('blog.render');
+
+Route::middleware('auth')
+    ->put('/blog', 'BlogController@newPost')
+    ->name('blog.post.create');
