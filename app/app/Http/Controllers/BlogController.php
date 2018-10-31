@@ -13,7 +13,7 @@ class BlogController extends Controller
         return view(
             'blog', [
                 // TODO: no paging here
-                'posts' => BlogPost::with(['author'])->get(),
+                'posts' => BlogPost::with(['author'])->get()->reverse(),
             ]
         );
     }
