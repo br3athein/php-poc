@@ -25,11 +25,6 @@ class BlogController extends Controller
         // TODO: resolve user_id
         $newPost->user_id = \Auth::user()->id;
         $newPost->save();
-        return view(
-            'blog', [
-                // TODO: no paging here
-                'posts' => BlogPost::all(),
-            ]
-        );
+        return $this->index();
     }
 }
