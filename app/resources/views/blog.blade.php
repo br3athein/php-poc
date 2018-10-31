@@ -24,16 +24,6 @@
             </div>
 
             <hr>
-            <div class="card">
-                <div class="card-header">
-                    Real posts
-                </div>
-
-                <div class="card-body">
-                    <pre>{{ $bpdata }}</pre>
-                </div>
-            </div>
-
             @if (empty($posts))
                 No blog posts are here yet.
             @endif
@@ -41,11 +31,11 @@
                 <!-- TODO: use ActiveRecord -->
                 <div class="card">
                     <div class="card-header">
-                        {{ $post['author'] }} posted at {{ $post['timestamp'] }}
+                        {{ \App\User::find($post->user_id)->name }} posted at {{ $post->created_at }}
                     </div>
 
                     <div class="card-body">
-                        {{ $post['body'] }}
+                        {{ $post->body }}
                     </div>
                 </div>
             @endforeach

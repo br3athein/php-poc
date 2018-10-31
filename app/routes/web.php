@@ -23,5 +23,5 @@ Route::middleware('auth')
     ->name('blog.render');
 
 Route::middleware('auth')
-    ->put('/blog', 'BlogController@newPost')
-    ->name('blog.post.create');
+    ->put('/blog', 'BlogController@store')
+    ->name('blog.post.store');
