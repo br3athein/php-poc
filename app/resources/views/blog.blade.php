@@ -31,7 +31,7 @@
                 <!-- TODO: use ActiveRecord -->
                 <div class="card">
                     <div class="card-header">
-                        {{ \App\User::find($post->user_id)->name }} posted at {{ $post->created_at }}
+                        {{ $post->author->name }} posted at {{ $post->created_at }}
                     </div>
 
                     <div class="card-body">
