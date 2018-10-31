@@ -15,7 +15,7 @@
                     @endif
 
                     You are logged in!
-                    <a href="/blog">Wanna do some blogging m8?</a>
+                    <a href="{{ route('blogposts.index') }}">Wanna do some blogging m8?</a>
                 </div>
             </div>
         </div>

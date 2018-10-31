@@ -18,10 +18,11 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
-Route::middleware('auth')
-    ->get('/blog', 'BlogController@index')
-    ->name('blog.render');
 
-Route::middleware('auth')
-    ->put('/blog', 'BlogController@store')
-    ->name('blog.post.store');
+Route::middleware(['auth'])
+    ->group(function () {
+        Route::get('blogposts', 'BlogPostController@index')
+            ->name('blogposts.index');
+        Route::post('blogposts', 'BlogPostController@store')
+            ->name('blogposts.store');
+    });
